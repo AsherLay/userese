@@ -1,0 +1,6 @@
+interface:
+  display_name: "Userese"
+  short_description: "先理解项目、受众与事实，再生成可核实的界面内容方案"
+  default_prompt: "使用 $userese 列出目标界面的全部展示文案，让我选择改写范围；再诊断内容并选择 Writer，先不要修改源文件。"
+policy:
+  allow_implicit_invocation: true
