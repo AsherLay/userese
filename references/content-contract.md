@@ -1,9 +1,10 @@
 # Content brief contract
 
-`brief.json` is the durable handoff between content strategy and any writer. It is UTF-8 JSON and deliberately extends the batch format used by `writer-gemini` and `write-qwen`, so those scripts can consume it without conversion.
+`brief.json` is the durable handoff between content strategy and any writer. It is UTF-8 JSON and implements `userese-brief/v1`. Compatible Writer skills can consume it without conversion.
 
 ```json
 {
+  "protocol": "userese-brief/v1",
   "run": {
     "project": "Example product",
     "goal": "让目标用户理解页面价值并采取下一步",
@@ -85,7 +86,7 @@
 
 ## Required fields
 
-The `run` object requires all of these fields:
+The top-level `protocol` value should be `userese-brief/v1`. The `run` object requires all of these fields:
 
 - compatibility fields: `project`, `goal`, `target_language`, `audience`, `brand_voice`, `terms`, `global_constraints`
 - content-design fields: `profile_source`, `surface`, `page_job`, `audience_detail`, `communication_goal`, `avoid`, `message_strategy`, `knowledge`
@@ -106,6 +107,7 @@ Every writer returns the same minimum structure:
 
 ```json
 {
+  "protocol": "userese-result/v1",
   "pipeline": {
     "writer": {
       "type": "host",
