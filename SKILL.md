@@ -1,6 +1,9 @@
 ---
 name: userese
-description: 让网站和 Web 应用说用户听得懂的话：先勘察目标 Surface、内容来源和可访问状态，让用户选择核心表达、完整界面或全项目审计，再渐进核实事实、确认范围并生成待核实文案提案。用于首页、About、产品介绍、专业业务页面、界面微文案或全局内容审计；不用于纯视觉设计或策略已明确的简单润色。
+license: MIT
+description: >-
+  让网站和 Web 应用说用户听得懂的话：先勘察目标 Surface、内容来源和可访问状态，让用户选择核心表达、完整界面或全项目审计，再核实事实并生成待核实文案提案。用于首页、About、产品介绍、专业业务页面、界面微文案或全局内容审计；不用于纯视觉设计或策略已明确的简单润色。
+  Also use when the user asks to rewrite landing copy, audit website copy, fix UI microcopy, or review homepage, About, or product copy.
 ---
 
 # Userese
@@ -18,6 +21,8 @@ description: 让网站和 Web 应用说用户听得懂的话：先勘察目标 S
 - 可插拔 writer 按 brief 生成候选文字，不重新决定定位或发明事实。
 - 用户核实具体提案后，宿主才可修改获批的工作区内容。
 - 提交、推送、合并、部署和发布需要用户查看实际差异后的独立授权。
+
+默认用中文和用户说话。用户本轮主要用英文，或明确要求 English 时，改用英文操作提示，并阅读 [英文操作提示](references/operator-prompts-en.md)。`Surface.locale` 是页面语言，不是对用户说话的语言。脚本渲染的 `scan-plan.md` 等文件标题仍是中文；向英文用户转述时用英文说明，不要把中文栏目标签原样丢过去。
 
 ## 1. 给任务分流
 

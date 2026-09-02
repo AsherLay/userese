@@ -1,6 +1,6 @@
 interface:
   display_name: "Userese"
-  short_description: "先勘察网站界面、内容来源与覆盖边界，再生成可核实的内容方案"
-  default_prompt: "使用 $userese 勘察目标 Surface 和内容来源，展示核心表达、完整界面与全项目三种模式供我选择；再生成详细清单并让我确认改写范围，先不要修改源文件。"
+  short_description: "把项目里面向用户的语言找出来，按你指定的读者改一遍"
+  default_prompt: "使用 $userese 把这个项目里面向用户的语言找出来。先确认我希望谁来看，再按这个读者视角给出整体改写提案；先不要修改源文件。"
 policy:
   allow_implicit_invocation: true

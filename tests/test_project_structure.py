@@ -12,6 +12,7 @@ class ProjectStructureTest(unittest.TestCase):
         required = [
             "AGENTS.md",
             "README.md",
+            "LICENSE",
             "CONTEXT.md",
             "spec/v0.3/REQUIREMENTS.md",
             "design/INHERITANCE.md",
