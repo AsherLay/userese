@@ -3,7 +3,7 @@
 让产品说用户能听懂的话
 
 <p align="center">
-  <img src="docs/assets/userese-cover.svg" alt="一个产品界面从边上张开嘴在说话" width="920">
+  <img src="docs/assets/userese-cover.png" alt="一个产品界面张着嘴在说话" width="920">
 </p>
 
 当前版本：v0.3.0
