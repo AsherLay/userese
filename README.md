@@ -21,7 +21,7 @@ Userese 是给 Agent 用的内容设计 Skill。它把一个项目里面向用�
 - 你是一个很厉害的产品，通过vibe coding出来的结果，上线之前可以整体做一遍检查
 - 你是一个很厉害的Builder，但不确定你的用户是否能看懂你的表达
 - 害怕页面太多，说法大家，害怕AI味太重，但一条条改太浪费时间
-- 你的coding主模型未必是适合你写文案的模型，希望用writer模型整体做表达修改
+- 你的coding主模型未必是适合你写文案的模型，希望用自己的writer模型整体做表达修改，又不想消耗太多writer模型的token
 
 不适合纯视觉设计。如果读者和要说的话已经定了，只想去掉一点 AI 腔，用去 AI 味技能即可。
 
@@ -37,9 +37,9 @@ flowchart LR
   F --> G[你批准后才改文件]
 ```
 
-先找出用户会碰到的界面，以及这些界面上的字。再问你：希望谁来看。你可以选改核心表达、整页，还是整个项目。没逐条看的内容仍留着数量和来源，不会假装没发现过。
+先找出用户会碰到的界面，以及这些界面上的字。再问你：希望谁来看。你可以选改核心表达、整页，还是整个项目。
 
-源文件要你点头才动。你批准哪些 `copy-*` ID，才改哪些。批准文案不等于批准改布局。
+源文件要你点头才动。你批准哪些 `copy-*` ID，才改哪些。只修改文案的话不会修改整体布局。
 
 ## 安装
 
@@ -105,7 +105,7 @@ By default it only writes research and proposals under `.userese/runs/`. Product
 - You are a strong product person. You vibe-coded something, and you want a full pass before it goes live
 - You are a strong builder, and you are not sure users can follow how you explain it
 - There are too many pages, the copy contradicts itself, it sounds like AI, and fixing it line by line would take too long
-- The model you code with is not the model you want writing copy, so you want a writer model to redo the words
+- The model you code with may not be the right model for copy. You want your own writer model to redo the wording, without spending too many of that writer's tokens
 
 Skip it for visual-only work. If the reader and the message are already set, and you only want to strip AI tone, use a de-AI skill.
 
@@ -121,9 +121,9 @@ flowchart LR
   F --> G[Files change only after you approve]
 ```
 
-First find the screens a user will hit, and the words on those screens. Then ask who this is for. You can rewrite the core expression, a whole screen, or the project. Copy that was found but not reviewed still keeps a count and a source. It does not disappear.
+First find the screens a user will hit, and the words on those screens. Then ask who this is for. You can rewrite the core expression, a whole screen, or the project.
 
-Source files change only after you say so. Only approved `copy-*` IDs are edited. Approving copy does not approve a layout change.
+Source files change only after you say so. Only approved `copy-*` IDs are edited. Changing the copy does not change the overall layout.
 
 ### Install
 
