@@ -3,7 +3,7 @@
 让产品说用户能听懂的话。
 
 <p align="center">
-  <img src="docs/assets/userese-cover.jpg" alt="一个产品页对着使用者说话，气泡里写着你能懂；旁边的代码手册还合着" width="920">
+  <img src="docs/assets/userese-cover.svg" alt="一个简单的产品框开口说话，气泡里是你能懂；缠在一起的线留在框里" width="920">
 </p>
 
 当前版本：v0.3.0

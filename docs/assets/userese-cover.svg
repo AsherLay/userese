@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">Userese</title>
+  <desc id="desc">A simple product frame speaks a few clear words. Dense unreadable lines stay inside the frame.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2A1C14"/>
+      <stop offset="100%" stop-color="#100C0A"/>
+    </linearGradient>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .06 0"/>
+    </filter>
+  </defs>
+
+  <rect width="1280" height="720" fill="url(#bg)"/>
+  <rect width="1280" height="720" filter="url(#grain)" opacity=".45"/>
+
+  <g fill="none" stroke="#F3E6D2" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="148" y="128" width="430" height="430" rx="18"/>
+    <circle cx="188" cy="168" r="7"/>
+    <circle cx="216" cy="168" r="7"/>
+    <circle cx="244" cy="168" r="7"/>
+    <path d="M176 208 H546"/>
+  </g>
+
+  <g fill="none" stroke="#C4A574" stroke-width="3" stroke-linecap="round" opacity=".42">
+    <path d="M208 268 H392"/>
+    <path d="M208 292 H348"/>
+    <path d="M208 316 H368"/>
+    <path d="M208 340 H318"/>
+    <path d="M208 364 H356"/>
+    <path d="M208 388 H300"/>
+  </g>
+  <rect x="208" y="428" width="88" height="28" rx="6" fill="none" stroke="#C45C3E" stroke-width="3"/>
+
+  <path d="M560 250 L612 278 L560 306 Z" fill="#C45C3E"/>
+  <ellipse cx="860" cy="278" rx="248" ry="168" fill="#F3E6D2"/>
+  <text x="860" y="298" text-anchor="middle" fill="#1C1410" font-family="Georgia, serif" font-size="72">你能懂</text>
+
+  <text x="148" y="656" fill="#E8C9A0" font-family="Georgia, serif" font-size="22" letter-spacing="8">USERESE</text>
+  <text x="318" y="656" fill="#C4A574" font-family="Georgia, serif" font-size="18">让产品说话</text>
+</svg>
