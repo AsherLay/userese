@@ -1,6 +1,6 @@
 # Userese
 
-让产品说用户能听懂的话。
+让产品说用户能听懂的话
 
 <p align="center">
   <img src="docs/assets/userese-cover.svg" alt="一个简单的产品框开口说话，气泡里是你能懂；缠在一起的线留在框里" width="920">
@@ -92,7 +92,7 @@ v0.3.0 先让你看清用户会读到什么、改多深，再进入写作。避�
 
 ## English
 
-Let the product speak in words users can understand.
+Let the product speak in words users can understand
 
 Current version: v0.3.0
 
