@@ -1,9 +1,9 @@
 # Userese
 
-把面向用户的话，改成读者听得懂的话。
+让产品说用户能听懂的话。
 
 <p align="center">
-  <img src="docs/assets/userese-cover.svg" alt="一张印出来的网页校样，标题上搁着放大镜和便签；旁边的源码夹还是合上的" width="920">
+  <img src="docs/assets/userese-cover.jpg" alt="一个产品页对着使用者说话，气泡里写着你能懂；旁边的代码手册还合着" width="920">
 </p>
 
 当前版本：v0.3.0
@@ -88,7 +88,7 @@ v0.3.0 先让你看清用户会读到什么、改多深，再进入写作。避�
 
 ## English
 
-Turn the user-facing words into language a reader can follow.
+Let the product speak in words users can understand.
 
 Current version: v0.3.0
 
