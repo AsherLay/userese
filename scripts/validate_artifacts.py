@@ -21,6 +21,21 @@ TOKEN_PATTERNS = [
     re.compile(r"</?[A-Za-z][^>]*>"),
 ]
 
+SURFACE_PROTOCOL = "userese-surface-map/v1"
+CANDIDATE_PROTOCOL = "userese-candidates/v1"
+INVENTORY_PROTOCOL = "userese-inventory/v2"
+SECRET_KEYS = {
+    "authorization",
+    "cookie",
+    "cookies",
+    "api_key",
+    "apikey",
+    "access_token",
+    "refresh_token",
+    "password",
+    "secret",
+}
+
 
 class ValidationError(Exception):
     pass
@@ -45,6 +60,139 @@ def collect_tokens(value: str) -> list[str]:
     for pattern in TOKEN_PATTERNS:
         tokens.extend(pattern.findall(value))
     return sorted(tokens)
+
+
+def find_secret_fields(value: Any, path: str) -> list[str]:
+    errors: list[str] = []
+    if isinstance(value, dict):
+        for key, child in value.items():
+            normalized = str(key).lower().replace("-", "_")
+            if normalized in SECRET_KEYS:
+                errors.append(f"secret-bearing field is not allowed: {path}.{key}")
+            errors.extend(find_secret_fields(child, f"{path}.{key}"))
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            errors.extend(find_secret_fields(child, f"{path}[{index}]"))
+    return errors
+
+
+def validate_surface_map(mapping: dict[str, Any]) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+    if mapping.get("protocol") != SURFACE_PROTOCOL:
+        errors.append(f"surface map protocol must be {SURFACE_PROTOCOL}")
+    surface = mapping.get("surface")
+    if not isinstance(surface, dict):
+        return errors + ["surface map surface must be an object"], warnings
+    for key in ["name", "role", "locale", "viewport"]:
+        if not isinstance(surface.get(key), str) or not surface.get(key):
+            errors.append(f"surface map surface.{key} must be a non-empty string")
+    if not isinstance(surface.get("routes"), list) or not surface.get("routes"):
+        errors.append("surface map surface.routes must be a non-empty array")
+    states = surface.get("states")
+    if not isinstance(states, list) or not states:
+        errors.append("surface map surface.states must be a non-empty array")
+    else:
+        for index, state in enumerate(states):
+            if not isinstance(state, dict) or not state.get("name"):
+                errors.append(f"surface.states[{index}] needs a name")
+                continue
+            if state.get("access") not in {"accessed", "unavailable", "not-requested"}:
+                errors.append(f"surface.states[{index}] has invalid access")
+            if state.get("access") == "unavailable" and not state.get("reason"):
+                errors.append(f"surface.states[{index}] needs an unavailable reason")
+    sources = mapping.get("sources")
+    if not isinstance(sources, list):
+        errors.append("surface map sources must be an array")
+    else:
+        source_ids: set[str] = set()
+        for index, source in enumerate(sources):
+            if not isinstance(source, dict):
+                errors.append(f"surface map sources[{index}] must be an object")
+                continue
+            source_id = source.get("id")
+            if not isinstance(source_id, str) or not source_id:
+                errors.append(f"surface map sources[{index}] needs an id")
+            elif source_id in source_ids:
+                errors.append(f"duplicate surface source id {source_id}")
+            else:
+                source_ids.add(source_id)
+            if source.get("origin_type") not in {"source", "ssr", "api", "cms", "i18n", "runtime-template", "unknown"}:
+                errors.append(f"surface map source {source_id or index} has invalid origin_type")
+            if source.get("status") not in {"accessed", "unavailable", "candidate", "not-requested"}:
+                errors.append(f"surface map source {source_id or index} has invalid status")
+            if not isinstance(source.get("locator"), dict):
+                errors.append(f"surface map source {source_id or index} needs locator")
+    if not isinstance(mapping.get("limitations"), list):
+        errors.append("surface map limitations must be an array")
+    scan = mapping.get("scan")
+    if scan is not None:
+        if not isinstance(scan, dict):
+            errors.append("surface map scan must be an object")
+        else:
+            for key in ["files_scanned", "readable_files_sampled", "total_bytes", "file_types", "route_candidates", "signals", "limits"]:
+                if key not in scan:
+                    errors.append(f"surface map scan is missing {key}")
+    errors.extend(find_secret_fields(mapping, "surface-map"))
+    return errors, warnings
+
+
+def validate_candidates(artifact: dict[str, Any]) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+    if artifact.get("protocol") != CANDIDATE_PROTOCOL:
+        errors.append(f"candidate protocol must be {CANDIDATE_PROTOCOL}")
+    candidates = artifact.get("candidates")
+    observations = artifact.get("observations")
+    if not isinstance(candidates, list):
+        return errors + ["candidates.candidates must be an array"], warnings
+    if not isinstance(observations, dict):
+        errors.append("candidates.observations must be an object")
+    else:
+        if observations.get("candidate_count") != len(candidates):
+            errors.append("candidate observation count does not match candidates")
+        expected_characters = sum(
+            len(item.get("text", ""))
+            for item in candidates
+            if isinstance(item, dict) and isinstance(item.get("text"), str)
+        )
+        if observations.get("candidate_characters") != expected_characters:
+            errors.append("candidate character observation does not match candidates")
+    required = [
+        "id",
+        "text",
+        "kind",
+        "content_nature",
+        "detail_class",
+        "rendered_at",
+        "origin_type",
+        "source_locator",
+        "editability",
+        "trace_confidence",
+        "location",
+    ]
+    ids: set[str] = set()
+    for index, item in enumerate(candidates):
+        if not isinstance(item, dict):
+            errors.append(f"candidates[{index}] must be an object")
+            continue
+        for key in missing_keys(item, required):
+            errors.append(f"candidates[{index}] is missing {key}")
+        item_id = item.get("id")
+        if not isinstance(item_id, str) or not item_id.startswith("candidate-"):
+            errors.append(f"candidates[{index}].id must start with candidate-")
+        elif item_id in ids:
+            errors.append(f"duplicate candidate id {item_id}")
+        else:
+            ids.add(item_id)
+        if item.get("origin_type") not in {"source", "ssr", "api", "cms", "i18n", "runtime-template", "unknown"}:
+            errors.append(f"candidate {item_id or index} has invalid origin_type")
+        if item.get("content_nature") not in {"authored-copy", "system-template", "business-data", "user-generated", "decorative", "unknown"}:
+            errors.append(f"candidate {item_id or index} has invalid content_nature")
+        if item.get("trace_confidence") not in {"high", "medium", "low"}:
+            errors.append(f"candidate {item_id or index} has invalid trace_confidence")
+    errors.extend(find_secret_fields(artifact, "candidates"))
+    return errors, warnings
 
 
 def validate_inventory(inventory: dict[str, Any]) -> tuple[list[str], list[str]]:
@@ -98,9 +246,53 @@ def validate_inventory(inventory: dict[str, Any]) -> tuple[list[str], list[str]]
                     "confirmed inventory.selection.note must record the user's choice"
                 )
 
-    if not isinstance(items, list) or not items:
+    if not isinstance(items, list):
+        errors.append("inventory.items must be an array")
+        return errors, warnings
+    is_v2 = inventory.get("protocol") == INVENTORY_PROTOCOL
+    if not items and not is_v2:
         errors.append("inventory.items must be a non-empty array")
         return errors, warnings
+
+    if is_v2:
+        if inventory.get("audit_mode") not in {"core", "surface", "project"}:
+            errors.append("v2 inventory audit_mode must be core, surface, or project")
+        if isinstance(coverage, dict):
+            for key in ["complete", "discovered_count", "analyzed_count", "grouped_count", "groups"]:
+                if key not in coverage:
+                    errors.append(f"v2 inventory.coverage is missing {key}")
+            groups = coverage.get("groups")
+            if not isinstance(groups, list):
+                errors.append("v2 inventory.coverage.groups must be an array")
+                groups = []
+            grouped_count = 0
+            grouped_ids: list[str] = []
+            for index, group in enumerate(groups):
+                if not isinstance(group, dict):
+                    errors.append(f"coverage.groups[{index}] must be an object")
+                    continue
+                for key in ["category", "count", "examples", "rendered_at", "origins", "reason", "how_to_expand", "candidate_ids"]:
+                    if key not in group:
+                        errors.append(f"coverage.groups[{index}] is missing {key}")
+                if isinstance(group.get("count"), int):
+                    grouped_count += group["count"]
+                if isinstance(group.get("candidate_ids"), list):
+                    grouped_ids.extend(group["candidate_ids"])
+            if coverage.get("analyzed_count") != len(items):
+                errors.append("v2 inventory analyzed_count does not match items")
+            if coverage.get("grouped_count") != grouped_count:
+                errors.append("v2 inventory grouped_count does not match groups")
+            if coverage.get("discovered_count") != len(items) + grouped_count:
+                errors.append("v2 inventory discovered_count must equal analyzed plus grouped")
+            if len(grouped_ids) != len(set(grouped_ids)):
+                errors.append("a candidate appears in more than one coverage group")
+        observations = inventory.get("observations")
+        if not isinstance(observations, dict):
+            errors.append("v2 inventory.observations must be an object")
+        else:
+            for key in ["files_scanned", "dom_states_scanned", "responses_scanned", "candidate_count", "candidate_characters", "semantic_candidate_count", "semantic_characters", "knowledge_reads", "duplicate_full_reads"]:
+                if key not in observations:
+                    errors.append(f"v2 inventory.observations is missing {key}")
 
     valid_visibility = {
         "default",
@@ -125,6 +317,19 @@ def validate_inventory(inventory: dict[str, Any]) -> tuple[list[str], list[str]]
         "proposal_reason",
         "scope_decision",
     ]
+    if is_v2:
+        required.extend(
+            [
+                "candidate_id",
+                "rendered_at",
+                "origin_type",
+                "source_locator",
+                "editability",
+                "trace_confidence",
+                "content_nature",
+                "writer_eligibility",
+            ]
+        )
     ids: set[str] = set()
     for index, item in enumerate(items):
         if not isinstance(item, dict):
@@ -168,6 +373,27 @@ def validate_inventory(inventory: dict[str, Any]) -> tuple[list[str], list[str]]
             errors.append(
                 f"inventory item {item_id or index} remains pending after confirmation"
             )
+        if is_v2:
+            if item.get("origin_type") not in {"source", "ssr", "api", "cms", "i18n", "runtime-template", "unknown"}:
+                errors.append(f"inventory item {item_id or index} has invalid origin_type")
+            if item.get("content_nature") not in {"authored-copy", "system-template", "business-data", "user-generated", "decorative", "unknown"}:
+                errors.append(f"inventory item {item_id or index} has invalid content_nature")
+            if item.get("trace_confidence") not in {"high", "medium", "low"}:
+                errors.append(f"inventory item {item_id or index} has invalid trace_confidence")
+            if item.get("writer_eligibility") not in {"eligible", "conditional", "ineligible"}:
+                errors.append(f"inventory item {item_id or index} has invalid writer_eligibility")
+    if is_v2 and isinstance(coverage, dict) and isinstance(coverage.get("groups"), list):
+        detailed_ids = {item.get("candidate_id") for item in items if isinstance(item, dict)}
+        grouped_ids = {
+            candidate_id
+            for group in coverage["groups"]
+            if isinstance(group, dict) and isinstance(group.get("candidate_ids"), list)
+            for candidate_id in group["candidate_ids"]
+        }
+        overlap = sorted(value for value in detailed_ids & grouped_ids if isinstance(value, str))
+        if overlap:
+            errors.append(f"candidates are both detailed and grouped: {', '.join(overlap)}")
+        errors.extend(find_secret_fields(inventory, "inventory"))
     return errors, warnings
 
 
@@ -509,12 +735,14 @@ def main() -> int:
     parser.add_argument("brief", type=Path, nargs="?")
     parser.add_argument("result", type=Path, nargs="?")
     parser.add_argument("--inventory", type=Path)
+    parser.add_argument("--surface-map", type=Path)
+    parser.add_argument("--candidates", type=Path)
     parser.add_argument("--recommendations", type=Path)
     args = parser.parse_args()
 
     try:
-        if not args.brief and not args.inventory:
-            parser.error("provide a brief, --inventory, or both")
+        if not args.brief and not args.inventory and not args.surface_map and not args.candidates:
+            parser.error("provide a brief, --inventory, --surface-map, or --candidates")
         if args.result and not args.brief:
             parser.error("a result requires a brief")
         if args.recommendations and not args.brief:
@@ -524,6 +752,16 @@ def main() -> int:
         warnings: list[str] = []
         inventory: dict[str, Any] | None = None
         brief: dict[str, Any] | None = None
+        if args.surface_map:
+            mapping = read_object(args.surface_map)
+            surface_errors, surface_warnings = validate_surface_map(mapping)
+            errors.extend(surface_errors)
+            warnings.extend(surface_warnings)
+        if args.candidates:
+            candidate_artifact = read_object(args.candidates)
+            candidate_errors, candidate_warnings = validate_candidates(candidate_artifact)
+            errors.extend(candidate_errors)
+            warnings.extend(candidate_warnings)
         if args.inventory:
             inventory = read_object(args.inventory)
             inventory_errors, inventory_warnings = validate_inventory(inventory)
@@ -566,6 +804,10 @@ def main() -> int:
         blocked_count = len(brief.get("blocked_items", [])) if brief is not None else 0
         inventory_count = len(inventory.get("items", [])) if inventory is not None else 0
         labels = []
+        if args.surface_map:
+            labels.append("surface map")
+        if args.candidates:
+            labels.append("candidates")
         if inventory is not None:
             labels.append(f"inventory: {inventory_count} item(s)")
         if brief is not None:

@@ -4,7 +4,7 @@ Use this contract before diagnosis or writing whenever the user asks to change c
 
 ## Coverage boundary
 
-Inspect the requested routes in source and, when runnable, in the rendered interface. Inventory every string a user can encounter in that boundary:
+Inspect the requested routes in source and, when runnable, in the rendered interface. Discover every string a user can encounter in that boundary; only the confirmed audit mode decides which candidates are expanded into detailed items:
 
 - navigation, headings, paragraphs, lists, case narratives, CTAs and links
 - labels, help text, placeholders, validation, errors, empty/loading/success states and confirmations
@@ -14,6 +14,21 @@ Inspect the requested routes in source and, when runnable, in the rendered inter
 Developer logs, tests, code identifiers and server-only messages are not inventory items. Record the source patterns checked and meaningful exclusions under `coverage`; put uncertain visibility in the inventory with `visibility: "unknown"`. Embedded text in images, unreachable states and remote content belong in `coverage.limitations` when they cannot be inspected.
 
 Repeated strings with different jobs or locations are separate items. A shared source rendered in several equivalent locations may be one item only when all consumers and contexts are recorded.
+
+## v0.3 discovery relationship
+
+`content-inventory.json` may implement `userese-inventory/v2`. It retains all v0.2 fields below and adds `audit_mode`, per-item Surface/source tracing, `coverage.groups`, and `observations`. Its counts have distinct meanings:
+
+- `coverage.discovered_count`: program-discovered candidates.
+- `coverage.analyzed_count`: candidates detailed in the current mode.
+- `coverage.grouped_count`: discovered candidates represented only by grouped coverage.
+- `selection`: what the user later includes or excludes from the detailed items.
+
+Each group requires a category, count, examples, rendered states, origins, reason, expansion instruction and candidate IDs. A grouped candidate is not an excluded item. Business data and user-generated content normally remain grouped even in `surface` mode; review the product-controlled template around them instead of rewriting their live values.
+
+Each v2 detailed item additionally requires `candidate_id`, `rendered_at`, `origin_type`, `source_locator`, `editability`, `trace_confidence`, `content_nature`, and `writer_eligibility`. Source tracing uses [surface-discovery.md](surface-discovery.md). A failed trace stays visible as `unknown`; it never justifies dropping the text.
+
+The validator continues accepting the v0.2 shape for migration and existing runs. `userese-brief/v1` remains unchanged.
 
 ## JSON contract
 
@@ -62,7 +77,7 @@ Store the source of truth as `content-inventory.json`:
 }
 ```
 
-Required top-level objects are `surface`, `coverage`, `selection`, and a non-empty `items` array. Every item requires `id`, `location`, `route`, `section`, `kind`, `original`, `purpose`, `visibility`, `proposed_treatment`, `proposal_reason`, and `scope_decision`.
+Required top-level objects are `surface`, `coverage`, `selection`, and an `items` array. A v0.2 inventory keeps a non-empty array; v2 may have zero detailed items only when its discovered candidates are accounted for by coverage groups. Every item requires `id`, `location`, `route`, `section`, `kind`, `original`, `purpose`, `visibility`, `proposed_treatment`, `proposal_reason`, and `scope_decision`.
 
 - `id` uses a stable `copy-*` value and is reused by the brief and writer result.
 - `visibility` is `default`, `conditional`, `dynamic`, `metadata`, `accessibility`, or `unknown`.

@@ -1,6 +1,6 @@
 ---
 name: userese
-description: 让网站和 Web 应用说用户听得懂的话：从项目与界面发现受众、事实和全部用户可见文案，让用户确认改写范围，再形成 writing brief 并交给可选 Writer 或宿主生成待核实提案。用于首页、About、产品介绍、专业业务页面、界面微文案或全局内容审计；不用于纯视觉设计或策略已明确的简单润色。
+description: 让网站和 Web 应用说用户听得懂的话：先勘察目标 Surface、内容来源和可访问状态，让用户选择核心表达、完整界面或全项目审计，再渐进核实事实、确认范围并生成待核实文案提案。用于首页、About、产品介绍、专业业务页面、界面微文案或全局内容审计；不用于纯视觉设计或策略已明确的简单润色。
 ---
 
 # Userese
@@ -14,7 +14,7 @@ description: 让网站和 Web 应用说用户听得懂的话：从项目与界�
 内容设计和写作是两个独立职责：
 
 - 本技能发现知识、指出现有表达的问题、确定受众与页面任务、核实事实并形成 brief。
-- 宿主先列全目标界面的用户可见文案；系统可建议处理方式，用户决定哪些条目进入本次范围。
+- 宿主先用确定性工具建立全部发现证据；用户确认审计模式后，系统才对所选深度逐项分析，未展开内容保留分组覆盖摘要。
 - 可插拔 writer 按 brief 生成候选文字，不重新决定定位或发明事实。
 - 用户核实具体提案后，宿主才可修改获批的工作区内容。
 - 提交、推送、合并、部署和发布需要用户查看实际差异后的独立授权。
@@ -30,37 +30,46 @@ description: 让网站和 Web 应用说用户听得懂的话：从项目与界�
 
 用户只要反馈或诊断时采用快速审计；要求改变内容时默认采用引导设计；只有用户明确要求完整品牌或定位研究，或紧凑访谈仍无法形成可信方向时，才进入深度发现。
 
-## 2. 先发现项目知识
+## 2. 确认目标 Surface
 
-阅读目标路由、组件、相邻页面和实际交互，再检查项目入口、产品说明、需求、研究、领域文档、术语、数据模型、配置和测试。若 `.userese/project-profile.json` 已存在，把其中经用户确认的受众、术语、证据和禁忌作为可复核线索，避免重复访谈；项目现状与档案冲突时以冲突处理。旧项目只有 `.uxplain/`、`.frontend-content-design/` 或 `.frontend-content-design.json` 时，把它作为只读的兼容来源；所有新产物和后续更新写入 `.userese/`。按页面类型阅读 [知识发现指南](references/knowledge-discovery.md)，用 `rg` 建立来源清单；不把现有文案当作证明其自身正确的证据。
+在深入阅读项目前，提出一个可修正的 Surface：路由或入口、用户角色、语言、会改变内容的设备/viewport、默认状态和用户要求覆盖的条件状态。缺少低风险信息时使用明确临时假设；需要凭据、外部写入或额外权限的状态停止对应采集并记录限制。
 
-在 run 目录写 `knowledge-map.md`，把重要判断标为：
+阅读 [Surface 发现协议](references/surface-discovery.md)，在 `.userese/runs/<UTC 时间>/` 创建 `surface-map.json`。Surface 是用户体验边界，不是某个前端文件；SSR、API、CMS、国际化和运行时模板只要在该界面出现，都属于发现范围。
 
-- `verified`：有可定位的项目证据或用户明确确认。
-- `inferred`：证据支持但仍含解释；记录推理和风险。
-- `conflict`：可信来源互相矛盾。
-- `unknown`：项目无法回答。
+## 3. 低成本勘察，并确认审计模式
 
-完成标准：受众、页面任务、产品行为、重要主张、术语和限制都有状态；每个会进入文案的事实都能追溯到证据或用户确认。用户确认新增长期知识后，可更新 `project-profile.json`；只保留未来任务会复用的内容，不保存密钥或任务不需要的敏感信息，也不自动提交该档案。
-
-## 3. 列全展示文案，让用户确认范围
-
-对目标页面、路由和相关界面状态建立完整清单。阅读 [文案清单协议](references/content-inventory.md)，创建 `content-inventory.json`，再生成便于核对的 `content-inventory.md`。标题、正文、案例叙述、按钮、标签、图注、导航、表单帮助、错误/空白/加载/成功状态、无障碍文本和页面元信息都要进入检查；无法确认是否会展示的字符串标为不确定，不从清单中消失。
-
-每条已识别文案使用稳定的 `copy-*` ID，保留原文、用途、位置、区块和可见条件。宿主可以标注建议 `review`、`keep` 或 `needs-context` 及理由，但这只是建议。认为某段写得好时把它列为 `keep`，不能用“不进入 brief”代替识别。
-
-先运行：
+用确定性工具枚举目标文件、HTML、可用的浏览器 DOM 和与该 Surface 直接相关的结构化 capture。不得执行项目中未经授权的命令，也不得把 Cookie、Authorization、密钥、完整无关响应或批量用户内容写入产物。运行：
 
 ```bash
-python3 <skill-dir>/scripts/validate_artifacts.py --inventory content-inventory.json
+python3 <skill-dir>/scripts/scan_surface.py surface-map.json surface-map.json --root <project-root>
+python3 <skill-dir>/scripts/discover_content.py surface-map.json --html <page.html> --capture <capture.json> --candidates-out content-candidates.json
+python3 <skill-dir>/scripts/validate_artifacts.py --surface-map surface-map.json --candidates content-candidates.json
+python3 <skill-dir>/scripts/render_scan_plan.py surface-map.json scan-plan.md --candidates content-candidates.json
+```
+
+向用户展示 `scan-plan.md`：Surface、来源、已访问/未访问状态、限制，以及三种模式的相对工作量。`core` 默认建议，只逐项展开主要理解、判断和行动内容；`surface` 展开该 Surface 的全部产品表达；`project` 扩展到用户指定的多个 Surface 和渠道。用户已明确指定模式时保留选择，但仍展示勘察影响。没有模式确认，不进入高成本语义分析。
+
+## 4. 生成详细清单与分组覆盖摘要
+
+确认模式后，用同一 `content-candidates.json` 生成 `content-inventory.json`。机械候选必须保留显示文本/模板、route、state、locale、viewport、位置、消费者、来源和基础可见性。宿主只对当前模式展开的候选做语义复核，区分 `authored-copy`、`system-template`、`business-data`、`user-generated`、`decorative` 和 `unknown`。
+
+业务数据和用户内容不默认成为 Writer item；审阅它们的承载模板、标签和状态。未逐项展开的候选按类别记录数量、示例、Surface、来源、原因和展开方法；这表示“发现但未审阅”，不是用户 `exclude`。来源追踪失败也不能让条目消失，使用 `origin_type: unknown`、原因和低置信度记录。
+
+```bash
+python3 <skill-dir>/scripts/discover_content.py surface-map.json --html <page.html> --capture <capture.json> --mode core --candidates-out content-candidates.json --inventory-out content-inventory.json
+python3 <skill-dir>/scripts/validate_artifacts.py --surface-map surface-map.json --candidates content-candidates.json --inventory content-inventory.json
 python3 <skill-dir>/scripts/render_inventory.py content-inventory.json content-inventory.md
 ```
 
-随后在对话中报告识别总数、各页面/区块数量、条件状态和扫描限制，展示清单并停止。用户看过清单后，可选择全部、指定页面/区块或指定 `copy-*` ID；系统推荐不构成选择，最初的“优化首页”或“全局修改”也不跳过这次确认。确认后把每条 `scope_decision` 更新为 `include` 或 `exclude`，不得残留 `pending`，再次校验清单后才继续。
+每条详细文案使用稳定 `copy-*` ID，保留原文、用途、位置、状态、内容性质、来源定位、可修改性和追踪置信度。展示清单并停止，让用户选择全部、页面/区块、类别或指定 ID。确认后所有详细条目的 `scope_decision` 必须成为 `include` 或 `exclude`；分组内容保持发现证据，不能伪装成用户排除。
 
-完成标准：目标界面的每条已识别展示文案都在清单中；每条都有用户确认的范围决定；任何无法覆盖的运行状态或动态来源都明确写在 `coverage.limitations`。
+## 5. 按条目和主张渐进发现项目知识
 
-## 4. 用缺口触发有限访谈
+详细条目确定后，按 [知识发现指南](references/knowledge-discovery.md) 读取直接服务于条目或高影响主张的项目入口、产品说明、需求、研究、领域文档、数据模型、配置和测试；普通按钮不触发业务资料全文读取。校验脚本和测试默认直接运行，只有失败诊断或修改时才读实现。同一未变化来源不重复全文读取。
+
+若 `.userese/project-profile.json` 已存在，把经用户确认的受众、术语、证据和禁忌作为可复核线索；冲突时记录冲突。旧 `.uxplain/` 或 `.frontend-content-design/` 只读兼容，新产物写入 `.userese/`。在 `knowledge-map.md` 标记 `verified`、`inferred`、`conflict` 或 `unknown`，并在 inventory observations 中记录知识来源、服务条目、字符量和重复全文读取次数。高影响事实无法验证时进入 `blocked_items`，不靠扩大无关阅读假装确定。
+
+## 6. 用缺口触发有限访谈
 
 只有一个缺口同时满足以下条件才打断用户：答案会明显改变受众、页面任务、定位、主张或风险；无法从已授权的项目来源找到；继续假设会产生实质误导。
 
@@ -68,7 +77,7 @@ python3 <skill-dir>/scripts/render_inventory.py content-inventory.json content-i
 
 个人身份、团队机会和品牌志向不能仅从履历推断；专业系统的真实行为、数据含义和风险边界不能仅从营销文案推断。
 
-## 5. 先诊断，再给方向
+## 7. 先诊断，再给方向
 
 在 `diagnosis.md` 说明：当前页面实际上让陌生人理解了什么；事实、定位、可理解性、术语、信息层级和产品设计分别存在什么问题；哪些问题不能靠改词解决。
 
@@ -76,7 +85,7 @@ python3 <skill-dir>/scripts/render_inventory.py content-inventory.json content-i
 
 任务界面和低风险微文案在事实、行为与受众已经明确时，不增加单独的方向确认；把假设写入 brief 后继续生成文案提案。
 
-## 6. 生成供应商无关的 brief
+## 8. 生成供应商无关的 brief
 
 用户确认必要方向后，阅读 [内容协议](references/content-contract.md)，创建实现 `userese-brief/v1` 的 `brief.json`。它必须包含页面任务、受众状态、信息策略、事实证据、未知项、术语、约束和每条原文的预期含义。
 
@@ -88,13 +97,13 @@ python3 <skill-dir>/scripts/render_inventory.py content-inventory.json content-i
 python3 <skill-dir>/scripts/validate_artifacts.py brief.json --inventory content-inventory.json
 ```
 
-## 7. 写作前由用户指定 Writer 与去 AI 味步骤
+## 9. 写作前由用户指定 Writer 与去 AI 味步骤
 
 brief 通过校验、文案条目数已经确定后，必须在对话中展示一次“写作配置”，然后停止等待用户确认。默认值只是预选项，不是静默执行许可。
 
 写作配置必须同时说明：
 
-- 共识别多少条、用户选择多少条、其中多少条进入写作、多少条被知识缺口阻塞。
+- 程序发现多少条、当前模式详细分析多少条、分组多少条、用户选择多少条、其中多少条进入写作、多少条被知识缺口阻塞。
 - Writer：宿主 Agent（默认、无额外模型调用），或用户明确写出的一个或多个 Writer skill 名称。
 - 如果用户没有合适的 Writer，可以暂停本次运行，帮助其创建一个遵守接口的 Writer skill。
 - 去 AI 味步骤：不使用（默认），或用户明确写出的技能名称。
@@ -105,7 +114,7 @@ brief 通过校验、文案条目数已经确定后，必须在对话中展示�
 
 把确认结果写入 `brief.json` 的 `writing_pipeline`，再按 [Writer 接口](references/writer-interface.md) 执行。项目偏好只用于预选，不能跳过本次确认。
 
-## 8. 调用 Writer 与可选后处理
+## 10. 调用 Writer 与可选后处理
 
 支持：
 
@@ -117,7 +126,7 @@ brief 通过校验、文案条目数已经确定后，必须在对话中展示�
 
 若用户选择去 AI 味技能，先保留 `result-<writer>-raw.json`，再让该技能只处理候选文字，不改定位、事实、结构、ID、变量或约束，输出 `result-<writer>-<postprocessor>.json`。最终报告同时标注原 Writer 和后处理技能。未选择时直接使用 Writer 结果。
 
-## 9. 把非文案建议独立出来
+## 11. 把非文案建议独立出来
 
 内容诊断可以发现需要调整信息顺序、导航、区块、交互、视觉层级、证据或产品行为，但这些不是文案改写。把它们写入独立的 `recommendations.json` 和 `recommendations.md`，不要放进 Writer brief，也不要让 Writer 实施。
 
@@ -132,7 +141,7 @@ python3 <skill-dir>/scripts/render_recommendations.py recommendations.json recom
 
 没有非文案建议时也在最终摘要中明确报告为 0 条，不必创建空的 Markdown 文档。
 
-## 10. 宿主审核并分类交付
+## 12. 宿主审核并分类交付
 
 逐项检查结果是否忠于 `intended_meaning`、证据强度、用户动作、变量、格式标记、链接、长度和术语。运行兼容性校验并生成报告：
 
@@ -143,11 +152,11 @@ python3 <skill-dir>/scripts/render_report.py brief.json result.json before-after
 
 `before-after.md` 只承载文案候选，不包含结构或其他非文案实施。报告必须明确源文件未修改，并标注 Writer、去 AI 味步骤、文案数量和校验警告；可以列出非文案建议的分类计数，但详细内容只链接到独立建议文档。
 
-最终对话消息必须先报告覆盖：识别多少条、用户选择多少条、明确排除多少条、多少条因知识缺口阻塞；再逐类报告文案修改、保留和各类非文案建议数量及报告位置。随后给出彼此独立的选择：批准全部或指定文案 ID、批准指定建议 ID、要求调整，或放弃。不得使用“批准全部文案与结构”之类的捆绑口径。
+最终对话消息必须分别报告：程序发现、模型详细分析、用户选择、Writer 处理和用户批准应用各多少条，并列出分组覆盖与不可访问限制；再报告明确排除、知识阻塞、文案修改/保留和各类非文案建议。随后给出彼此独立的选择：批准全部或指定文案 ID、批准指定建议 ID、要求调整，或放弃。不得使用“批准全部文案与结构”之类的捆绑口径，存在关键限制时不得声称全量完成。
 
 没有针对具体文案报告的明确决定，就停留在文案提案阶段；没有针对具体建议 ID 的明确决定，就保持所有结构和其他建议未实施。
 
-## 11. 获批后修改工作区
+## 13. 获批后修改工作区
 
 文案只按获批的 `copy-*` ID、精确位置和原文修改。非文案建议只按另行获批的建议 ID 实施；批准文案不包含任何结构、产品、视觉或证据调整。无法唯一定位或原文已经变化时停止该项并报告。提案发生实质变化后重新核实。
 

@@ -52,7 +52,7 @@ When the user selects `skill:<name>`, read and follow that skill's operational i
 
 These companion names are protocol documentation, not an instruction to detect or select them. The user must still name one explicitly.
 
-Public companion repositories:
+兼容 Writer 仓库（当前均为私有）：
 
 - [userese-writer-qwen3-8-flash](https://github.com/AsherLay/userese-writer-qwen3-8-flash)
 - [userese-writer-gemini3-7-flash](https://github.com/AsherLay/userese-writer-gemini3-7-flash)

@@ -73,7 +73,9 @@ def main() -> int:
             "",
             "## 覆盖摘要",
             "",
-            f"- 识别文案：{len(items)} 条",
+            f"- 程序已发现：{coverage.get('discovered_count', len(items))} 条",
+            f"- 当前模式详细分析：{coverage.get('analyzed_count', len(items))} 条",
+            f"- 已发现但分组展示：{coverage.get('grouped_count', 0)} 条",
             f"- 范围状态：`{selection.get('status', 'unknown')}`",
             f"- 已选择：{decisions['include']} 条",
             f"- 已排除：{decisions['exclude']} 条",
@@ -90,7 +92,26 @@ def main() -> int:
             lines.extend(f"- {value}" for value in limitations)
         else:
             lines.append("- 未记录限制")
-        lines.extend(["", "## 全部识别文案", ""])
+        groups = coverage.get("groups", [])
+        if isinstance(groups, list) and groups:
+            lines.extend(["", "### 已发现但未逐项展开", ""])
+            for group in groups:
+                if not isinstance(group, dict):
+                    continue
+                examples = "；".join(str(value) for value in group.get("examples", []))
+                origins = "、".join(str(value) for value in group.get("origins", []))
+                lines.extend(
+                    [
+                        f"#### {group.get('category', 'unknown')} · {group.get('count', 0)} 条",
+                        "",
+                        f"- 示例：{examples or '无'}",
+                        f"- 来源：{origins or 'unknown'}",
+                        f"- 未展开原因：{group.get('reason', '')}",
+                        f"- 如何展开：{group.get('how_to_expand', '')}",
+                        "",
+                    ]
+                )
+        lines.extend(["", "## 当前模式详细条目", ""])
 
         for item in items:
             if not isinstance(item, dict):
@@ -105,6 +126,10 @@ def main() -> int:
                     f"- 位置：{location_label(location)}",
                     f"- 类型：`{item.get('kind', '')}`",
                     f"- 可见条件：`{item.get('visibility', '')}`",
+                    f"- 内容性质：`{item.get('content_nature', '未记录（v0.2）')}`",
+                    f"- 展示状态：`{json.dumps(item.get('rendered_at', {}), ensure_ascii=False, sort_keys=True)}`",
+                    f"- 技术来源：`{item.get('origin_type', '未记录（v0.2）')}` · `{json.dumps(item.get('source_locator', {}), ensure_ascii=False, sort_keys=True)}`",
+                    f"- 可修改性 / 追踪置信度：`{item.get('editability', '未记录')}` / `{item.get('trace_confidence', '未记录')}`",
                     f"- 用途：{item.get('purpose', '')}",
                     f"- 系统建议：`{item.get('proposed_treatment', '')}` — {item.get('proposal_reason', '')}",
                     f"- 用户范围决定：`{item.get('scope_decision', 'pending')}`",

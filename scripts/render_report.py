@@ -96,8 +96,12 @@ def main() -> int:
             validation = {}
         recommendation_counts: Counter[str] = Counter()
         inventory_items: list[dict[str, Any]] = []
+        coverage: dict[str, Any] = {}
         if args.inventory:
             inventory = read_object(args.inventory)
+            raw_coverage = inventory.get("coverage", {})
+            if isinstance(raw_coverage, dict):
+                coverage = raw_coverage
             inventory_items = [
                 item for item in inventory.get("items", []) if isinstance(item, dict)
             ]
@@ -137,10 +141,14 @@ def main() -> int:
             "",
             "## 提案范围",
             "",
-            f"- 识别到的展示文案：{len(inventory_items) if args.inventory else '未提供 inventory'}",
-            f"- 用户选择：{inventory_decisions['include'] if args.inventory else '未提供 inventory'}",
+            f"- 程序已发现：{coverage.get('discovered_count', len(inventory_items)) if args.inventory else '未提供 inventory'}",
+            f"- 模型已详细分析：{coverage.get('analyzed_count', len(inventory_items)) if args.inventory else '未提供 inventory'}",
+            f"- 已发现但分组展示：{coverage.get('grouped_count', 0) if args.inventory else '未提供 inventory'}",
+            f"- 用户已选择：{inventory_decisions['include'] if args.inventory else '未提供 inventory'}",
             f"- 用户排除：{inventory_decisions['exclude'] if args.inventory else '未提供 inventory'}",
             f"- 进入 Writer：{len(items)} 条",
+            f"- Writer 已处理：{len(result_by_id)} 条",
+            "- 用户已批准应用：0 条（本报告仍是待核实提案）",
             f"- 因知识缺口阻塞：{len(blocked_items)} 条",
             f"- Writer 建议改写：{result_decisions['rewrite']} 条",
             f"- Writer 建议保留：{result_decisions['keep']} 条",

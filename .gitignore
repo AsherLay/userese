@@ -1,3 +1,8 @@
 __pycache__/
 *.py[cod]
 .DS_Store
+.pytest_cache/
+.venv/
+.env
+.working/
+private/
