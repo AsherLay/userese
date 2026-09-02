@@ -125,7 +125,7 @@ flowchart LR
   F --> G[Files change only after you approve]
 ```
 
-First find the screens a user will see, and the copy on those screens. Then talk with you to find out who this is for. You can change only the core expression, a whole page, or the whole project.
+First find the screens a user will see, and the copy on those screens. Then it talks with you to find out who this is for. You can change only the core expression, a whole page, or the whole project.
 
 Source files change only after you say so. You confirm the scope yourself. Changing the copy does not affect the overall layout of the project.
 
