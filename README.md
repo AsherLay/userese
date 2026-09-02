@@ -68,7 +68,7 @@ Userese 自己不写最终句子，除非你让当前 Agent 当 Writer。Writer 
 | Writer | 模型 | 说明 |
 |---|---|---|
 | [userese-writer-qwen3-8-flash](https://github.com/AsherLay/userese-writer-qwen3-8-flash) | 阿里云百炼 `qwen3.8-flash` | 更适合中文稿。自备 `QWEN_API_KEY` 或 `DASHSCOPE_API_KEY` |
-| [userese-writer-gemini3-7-flash](https://github.com/AsherLay/userese-writer-gemini3-7-flash) | OpenRouter `google/gemini-3.7-flash` | 更适合英文稿。使用 OpenRouter 认证；当前实现也会读 `ANTHROPIC_AUTH_TOKEN`，方便和 Claude Code 共用 |
+| [userese-writer-gemini3-7-flash](https://github.com/AsherLay/userese-writer-gemini3-7-flash) | OpenRouter `google/gemini-3.7-flash` | 更适合英文稿。自备 `OPENROUTER_API_KEY`；也可以用 `ANTHROPIC_AUTH_TOKEN` 和 Claude Code 共用密钥 |
 
 它们只消费已确认的 `userese-brief/v1`，不改产品文件。首次产生费用前会说明模型、条目数和预计批次数。
 
@@ -150,7 +150,7 @@ The agent should follow the English stop-and-ask lines in [`references/operator-
 Userese does not write the final sentences unless you make the current agent the Writer. A Writer writes to the confirmed reader and meaning. It does not decide who this is for. Install a companion Writer, or use a writer skill you already have.
 
 - [userese-writer-qwen3-8-flash](https://github.com/AsherLay/userese-writer-qwen3-8-flash): Alibaba Cloud Model Studio `qwen3.8-flash`. Better for Chinese copy. Needs `QWEN_API_KEY` or `DASHSCOPE_API_KEY`.
-- [userese-writer-gemini3-7-flash](https://github.com/AsherLay/userese-writer-gemini3-7-flash): OpenRouter `google/gemini-3.7-flash`. Better for English copy. Uses OpenRouter auth; the current adapter also reads `ANTHROPIC_AUTH_TOKEN` so it can share a Claude Code key.
+- [userese-writer-gemini3-7-flash](https://github.com/AsherLay/userese-writer-gemini3-7-flash): OpenRouter `google/gemini-3.7-flash`. Better for English copy. Set `OPENROUTER_API_KEY`. `ANTHROPIC_AUTH_TOKEN` still works if you already share an OpenRouter key with Claude Code.
 
 They consume a confirmed `userese-brief/v1` and do not edit product files. Before the first paid call they state the model, item count, and expected batch count.
 
